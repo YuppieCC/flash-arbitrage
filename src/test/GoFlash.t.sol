@@ -1,30 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.0;
 
+import "ds-test/cheatcodes.sol";
 import "ds-test/console.sol";
 import "ds-test/test.sol";
 import {GoLoan} from "../GoLoan.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
+import {IPoolAddressesProvider} from '../interfaces/IPoolAddressesProvider.sol';
 
 contract GoFlashTest is DSTest {
     GoLoan goLoan;
-    address public LendingPoolAddressesProvider = 0xd05e3E715d945B59290df0ae8eF85c1BdB684744;
+    CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
+    
+    uint public testAmount = 2e6;
+    address public sam = 0x6F82E3cc2a3d6b7A6d98e7941BCadd7f52919D53;
+    address public PoolAddressesProvider = 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
     address public USDC = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+    address public amUSDC = 0x625E7708f30cA75bfd92586e17077590C60eb4cD;
 
     function setUp() public {
-        goLoan = new GoLoan(LendingPoolAddressesProvider);
-    }
+        goLoan = new GoLoan(IPoolAddressesProvider(PoolAddressesProvider));
+        console.log("GoLoan:", address(goLoan.ADDRESSES_PROVIDER()));
+        console.log("GoLoan:", address(goLoan.POOL()));
 
-    function testExample() public {
-        assertTrue(true);
+        cheats.prank(address(sam));
+        IERC20(USDC).approve(address(goLoan), testAmount);
+        cheats.prank(address(sam));
+        IERC20(USDC).transfer(address(goLoan), testAmount);
+
+        console.log("goLoan USDC:", IERC20(USDC).balanceOf(address(goLoan)));
     }
 
     function testFlashLoan() public {
-        uint thisOldBalance =IERC20(USDC).balanceOf(address(this));
-        console.log("thisOldBalance", thisOldBalance);
-        goLoan.flashloan(USDC);
-        uint thisNowBalance = IERC20(USDC).balanceOf(address(this));
-        console.log("thisNowBalance", thisNowBalance);
+        uint lastBalance = IERC20(USDC).balanceOf(address(goLoan));
+        console.log("GoLoan last Balance", lastBalance);
+        goLoan.flashLoanSimple(USDC, 1e6);
+        uint NowBalance = IERC20(USDC).balanceOf(address(goLoan));
+        console.log("GoLoan Now Balance", NowBalance);
     }
     
 }
