@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "ds-test/console.sol";
+import {SafeMath} from "./library/SafeMath.sol";
 import {Ownable} from "./library/Ownable.sol";
 import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.sol';
 import {IPoolAddressesProvider} from './interfaces/IPoolAddressesProvider.sol';
@@ -10,6 +11,8 @@ import {IERC20} from "./interfaces/IERC20.sol";
 
 
 contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
+    using SafeMath for uint;
+    
     IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
     IPool public immutable override POOL;
     uint16 public defaultReferralCode = 0;
@@ -33,7 +36,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
   ) external override returns (bool) {
       console.log("GoLoanContract Balance: ", getBalanceInternal(asset));
       require(amount <= getBalanceInternal(asset), "Invalid balance");
-      uint approveNum =  getBalanceInternal(asset) + premium;
+      uint approveNum =  premium.add(getBalanceInternal(asset));
       IERC20(asset).approve(address(POOL), approveNum);
       // TODO
 
