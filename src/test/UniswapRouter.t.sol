@@ -57,24 +57,24 @@ contract UniswapRouterTest is DSTest {
         console.log("Now balance", IERC20(WETH).balanceOf(SY));
     }
 
-    // function testQuickSwap() public {
-    //     console.log("before", IERC20(WMATIC).balanceOf(SY));
-    //     uint amountIn = 1e6;
-    //     address[] memory path = new address[](2);
-    //     path[0] = address(USDC);
-    //     path[1] = address(WMATIC);
+    function testQuickSwap() public {
+        console.log("before", IERC20(WMATIC).balanceOf(SY));
+        uint amountIn = 1e6;
+        address[] memory path = new address[](2);
+        path[0] = address(USDC);
+        path[1] = address(WMATIC);
 
-    //     cheats.prank(address(SY));
-    //     IERC20(USDC).approve(address(quickswapRouter), amountIn);
+        cheats.prank(address(SY));
+        IERC20(USDC).approve(address(quickswapRouter), amountIn);
 
-    //     cheats.prank(address(SY));
-    //     uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
-    //         amountIn,
-    //         0,
-    //         path,
-    //         address(SY),
-    //         block.timestamp
-    //     );
-    //     console.log("res", IERC20(WMATIC).balanceOf(SY));
-    // }
+        cheats.prank(address(SY));
+        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
+            amountIn,
+            0,
+            path,
+            address(SY),
+            block.timestamp
+        );
+        console.log("res", IERC20(WMATIC).balanceOf(SY));
+    }
 }
