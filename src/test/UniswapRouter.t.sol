@@ -77,4 +77,47 @@ contract UniswapRouterTest is DSTest {
         );
         console.log("res", IERC20(WMATIC).balanceOf(SY));
     }
+
+    function testArbitrage() public {
+        uint beforeWMATIC =  IERC20(WMATIC).balanceOf(SY);
+        uint amountIn = 10e6;
+        address[] memory path = new address[](2);
+        path[0] = address(USDC);
+        path[1] = address(WMATIC);
+        cheats.prank(address(SY));
+        IERC20(USDC).approve(address(quickswapRouter), amountIn);
+
+        cheats.prank(address(SY));
+        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
+            amountIn,
+            0,
+            path,
+            address(SY),
+            block.timestamp
+        );
+        uint afterWMATIC = IERC20(WMATIC).balanceOf(SY);
+        uint diffWMATIC = afterWMATIC - beforeWMATIC;
+        console.log("get amount: ", amounts[1]);
+        console.log("after quickswap: ", diffWMATIC);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: WMATIC,
+            tokenOut: USDC,
+            fee: 500,
+            recipient: address(SY),
+            deadline: block.timestamp,
+            amountIn: diffWMATIC,
+            amountOutMinimum: 0,
+            sqrtPriceLimitX96: 0
+        });
+        
+        cheats.prank(address(SY));
+        IERC20(WMATIC).approve(address(uniswapRouter), diffWMATIC);
+
+        cheats.prank(address(SY));
+        uint finalAmounts = uniswapRouter.exactInputSingle(params);
+        console.log("final amount: ", finalAmounts);
+        
+        
+    }
 }
