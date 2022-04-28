@@ -8,6 +8,8 @@ import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.so
 import {IPoolAddressesProvider} from './interfaces/IPoolAddressesProvider.sol';
 import {IPool} from './interfaces/IPool.sol';
 import {IERC20} from "./interfaces/IERC20.sol";
+import {IUniswapV2Router01} from "./interfaces/IUniswapV2Router01.sol";
+import {ISwapRouter} from "./interfaces/ISwapRouter.sol";
 
 
 contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
