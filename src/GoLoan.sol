@@ -13,12 +13,22 @@ import {ISwapRouter} from "./interfaces/ISwapRouter.sol";
 
 
 contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
+    IUniswapV2Router01 quickswapRouter;
+    ISwapRouter uniswapRouter;
     using SafeMath for uint;
     
     IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
     IPool public immutable override POOL;
     uint16 public defaultReferralCode = 0;
     uint256 public defaultPremium = 0.09 * 1e18;
+
+    // Quickswap
+    address public UniswapV2Router02 = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+
+    // Uniswap
+    address public SwapRouter = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+
+    address public WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
@@ -35,14 +45,49 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         uint256 premium,
         address initiator,
         bytes calldata params
-  ) external override returns (bool) {
-      console.log("GoLoanContract Balance: ", getBalanceInternal(asset));
-      require(amount <= getBalanceInternal(asset), "Invalid balance");
-      uint approveNum =  premium.add(getBalanceInternal(asset));
-      IERC20(asset).approve(address(POOL), approveNum);
-      // TODO
+    ) external override returns (bool) {
+        console.log("GoLoanContract Balance: ", getBalanceInternal(asset));
+        require(amount <= getBalanceInternal(asset), "Invalid balance");
 
-      return true;
+        uint approveNum =  premium.add(amount);
+        console.log("GoLoanContract approveNum: ", approveNum);
+        uint beforeWMATIC =  IERC20(WMATIC).balanceOf(address(this));
+
+        quickswapRouter = IUniswapV2Router01(UniswapV2Router02);
+        address[] memory path = new address[](2);
+        path[0] = asset;
+        path[1] = WMATIC;
+        IERC20(asset).approve(address(quickswapRouter), amount);
+        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
+            amount,
+            0,
+            path,
+            address(this),
+            block.timestamp
+        );
+
+        uint afterWMATIC = IERC20(WMATIC).balanceOf(address(this));
+        uint diffWMATIC = afterWMATIC - beforeWMATIC;
+        console.log("beforeWMATIC", beforeWMATIC);
+        console.log("afterWMATIC", afterWMATIC);
+        console.log("diffWMATIC", diffWMATIC);
+        uniswapRouter = ISwapRouter(SwapRouter);
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: WMATIC,
+            tokenOut: asset,
+            fee: 500,
+            recipient: address(this),
+            deadline: block.timestamp,
+            amountIn: diffWMATIC,
+            amountOutMinimum: 0,
+            sqrtPriceLimitX96: 0
+        });
+        IERC20(WMATIC).approve(address(uniswapRouter), diffWMATIC);
+        uint finalAmounts = uniswapRouter.exactInputSingle(params);
+        console.log("swap final amount: ", finalAmounts);
+
+        IERC20(asset).approve(address(POOL), approveNum);
+        return true;
   }
 
     function flashLoanSimple(address _asset, uint amount) public onlyOwner {

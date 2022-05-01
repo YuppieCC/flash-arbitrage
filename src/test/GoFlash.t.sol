@@ -12,7 +12,7 @@ contract GoFlashTest is DSTest {
     GoLoan goLoan;
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     
-    uint public testAmount = 2e6;
+    uint public testAmount = 3e6;
     address public sam = 0x6F82E3cc2a3d6b7A6d98e7941BCadd7f52919D53;
     address public PoolAddressesProvider = 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
     address public USDC = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
@@ -20,8 +20,8 @@ contract GoFlashTest is DSTest {
 
     function setUp() public {
         goLoan = new GoLoan(IPoolAddressesProvider(PoolAddressesProvider));
-        console.log("GoLoan:", address(goLoan.ADDRESSES_PROVIDER()));
-        console.log("GoLoan:", address(goLoan.POOL()));
+        console.log("GoLoan Address Provider:", address(goLoan.ADDRESSES_PROVIDER()));
+        console.log("GoLoan Pool:", address(goLoan.POOL()));
 
         cheats.prank(address(sam));
         IERC20(USDC).approve(address(goLoan), testAmount);
