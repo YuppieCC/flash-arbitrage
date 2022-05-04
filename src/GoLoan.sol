@@ -86,6 +86,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         uint finalAmounts = uniswapRouter.exactInputSingle(params);
         console.log("swap final amount: ", finalAmounts);
 
+        // approve the repay assets 
         IERC20(asset).approve(address(POOL), approveNum);
         return true;
   }
