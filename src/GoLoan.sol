@@ -72,7 +72,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         console.log("afterWMATIC", afterWMATIC);
         console.log("diffWMATIC", diffWMATIC);
         uniswapRouter = ISwapRouter(SwapRouter);
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+        ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
             tokenIn: WMATIC,
             tokenOut: asset,
             fee: 500,
@@ -83,11 +83,12 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
             sqrtPriceLimitX96: 0
         });
         IERC20(WMATIC).approve(address(uniswapRouter), diffWMATIC);
-        uint finalAmounts = uniswapRouter.exactInputSingle(params);
+        uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
         console.log("swap final amount: ", finalAmounts);
 
         // approve the repay assets 
         IERC20(asset).approve(address(POOL), approveNum);
+        ExecuteOperationEvent(asset, amount, premium, initiator, params);
         return true;
   }
 
@@ -95,5 +96,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         bytes memory data = "";
         POOL.flashLoanSimple(address(this), _asset, amount, data, defaultReferralCode);
     }
+
+    event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
      
 }
