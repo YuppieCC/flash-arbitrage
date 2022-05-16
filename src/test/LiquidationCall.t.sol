@@ -79,4 +79,20 @@ contract LiquidationCallTest is DSTest {
         uint afterBalance = IERC20(USDC).balanceOf(address(sam));
         console.log("afterBalance", afterBalance);
     }
+
+    function testWithdraw() public {
+        address asset = USDC;
+        uint256 amount = 1e6;
+        address to = sam;
+
+         uint beforeBalance = IERC20(USDC).balanceOf(address(sam));
+        console.log("beforeBalance", beforeBalance);
+
+        cheats.prank(sam);
+        pool.withdraw(asset, amount, to);
+
+        uint afterBalance = IERC20(USDC).balanceOf(address(sam));
+        console.log("afterBalance", afterBalance);
+    }
+
 }
