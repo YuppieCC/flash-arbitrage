@@ -95,4 +95,31 @@ contract LiquidationCallTest is DSTest {
         console.log("afterBalance", afterBalance);
     }
 
+    function testRepay() public {
+        address asset = USDC;
+        uint256 amount = 1e5;
+        uint256 interestRateMode = 2;
+        address onBehalfOf = sam;
+        uint16 referralCode = 0;
+        
+        uint beforeBalance = IERC20(USDC).balanceOf(address(sam));
+        console.log("beforeBalance", beforeBalance);
+
+        cheats.prank(sam);
+        pool.borrow(asset, amount, interestRateMode, referralCode, onBehalfOf);
+
+        uint afterBalance = IERC20(USDC).balanceOf(address(sam));
+        console.log("afterBalance", afterBalance);
+
+        // cheats.prank(sam);
+        // IERC20(asset).approve(address(pool), amount);
+
+        cheats.prank(sam);
+        uint res = pool.repay(asset, amount, interestRateMode, onBehalfOf);
+        console.log("res", res);
+
+        uint afterRepayBalance = IERC20(USDC).balanceOf(address(sam));
+        console.log("afterRepayBalance", afterRepayBalance);
+
+    }
 }
