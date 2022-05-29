@@ -28,7 +28,8 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     // Uniswap
     address public SwapRouter = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
-    address public WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address public swapInToken;
+    address public swapOutToken;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
@@ -51,12 +52,12 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
         uint approveNum =  premium.add(amount);
         console.log("GoLoanContract approveNum: ", approveNum);
-        uint beforeWMATIC =  IERC20(WMATIC).balanceOf(address(this));
+        uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
 
         quickswapRouter = IUniswapV2Router01(UniswapV2Router02);
         address[] memory path = new address[](2);
         path[0] = asset;
-        path[1] = WMATIC;
+        path[1] = swapOutToken;
         IERC20(asset).approve(address(quickswapRouter), amount);
         uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
             amount,
@@ -66,23 +67,24 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
             block.timestamp
         );
 
-        uint afterWMATIC = IERC20(WMATIC).balanceOf(address(this));
-        uint diffWMATIC = afterWMATIC - beforeWMATIC;
-        console.log("beforeWMATIC", beforeWMATIC);
-        console.log("afterWMATIC", afterWMATIC);
-        console.log("diffWMATIC", diffWMATIC);
+        uint afterSwapOutToken = IERC20(swapOutToken).balanceOf(address(this));
+        // uint diffSwapOutToken = sub(afterSwapOutToken, beforeSwapOutTokenBalance);
+        uint diffSwapOutToken= afterSwapOutToken.sub(beforeSwapOutTokenBalance);
+        console.log("beforeSwapOutTokenBalance", beforeSwapOutTokenBalance);
+        console.log("afterSwapOutToken", afterSwapOutToken);
+        console.log("diffSwapOutToken", diffSwapOutToken);
         uniswapRouter = ISwapRouter(SwapRouter);
         ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
-            tokenIn: WMATIC,
+            tokenIn: swapOutToken,
             tokenOut: asset,
             fee: 500,
             recipient: address(this),
             deadline: block.timestamp,
-            amountIn: diffWMATIC,
+            amountIn: diffSwapOutToken,
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
         });
-        IERC20(WMATIC).approve(address(uniswapRouter), diffWMATIC);
+        IERC20(swapOutToken).approve(address(uniswapRouter), diffSwapOutToken);
         uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
         console.log("swap final amount: ", finalAmounts);
 
@@ -92,9 +94,13 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         return true;
   }
 
-    function flashLoanSimple(address _asset, uint amount) public onlyOwner {
+    function execute(address _swapInToken, uint _swapInAmount, address _swapOutToken) public onlyOwner {
+        swapInToken = _swapInToken;
+        // swapInAmount = _swapInAmount;
+        swapOutToken = _swapOutToken;
+
         bytes memory data = "";
-        POOL.flashLoanSimple(address(this), _asset, amount, data, defaultReferralCode);
+        POOL.flashLoanSimple(address(this), _swapInToken, _swapInAmount, data, defaultReferralCode);
     }
 
     event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
