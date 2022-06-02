@@ -23,7 +23,8 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     uint256 public defaultPremium = 0.09 * 1e18;
 
     // Quickswap
-    address public UniswapV2Router02 = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+    // address public UniswapV2Router02 = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+    address public QuickswapRouter = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
 
     // Uniswap
     address public SwapRouter = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
@@ -40,6 +41,26 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         return IERC20(_reserve).balanceOf(address(this));
     }
 
+    function setQuickswapRouter(address _router) public {
+        quickswapRouter = IUniswapV2Router01(_router);
+        emit SetQuickswapRouter(_router);
+    }
+
+    function quickswapTrade(address swapIn, address swapOut, uint amount) internal {
+        address[] memory path = new address[](2);
+        path[0] = swapIn;
+        path[1] = swapOut;
+        IERC20(swapIn).approve(address(quickswapRouter), amount);
+        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
+            amount,
+            0,
+            path,
+            address(this),
+            block.timestamp
+        );
+        require(amounts[1] > 0, "Quickswap trade failed");
+    }
+
     function executeOperation(
         address asset,
         uint256 amount,
@@ -52,27 +73,15 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
         uint approveNum =  premium.add(amount);
         console.log("GoLoanContract approveNum: ", approveNum);
+
         uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
-
-        quickswapRouter = IUniswapV2Router01(UniswapV2Router02);
-        address[] memory path = new address[](2);
-        path[0] = asset;
-        path[1] = swapOutToken;
-        IERC20(asset).approve(address(quickswapRouter), amount);
-        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
-            amount,
-            0,
-            path,
-            address(this),
-            block.timestamp
-        );
-
+        quickswapTrade(asset, swapOutToken, amount);
         uint afterSwapOutToken = IERC20(swapOutToken).balanceOf(address(this));
-        // uint diffSwapOutToken = sub(afterSwapOutToken, beforeSwapOutTokenBalance);
         uint diffSwapOutToken= afterSwapOutToken.sub(beforeSwapOutTokenBalance);
         console.log("beforeSwapOutTokenBalance", beforeSwapOutTokenBalance);
         console.log("afterSwapOutToken", afterSwapOutToken);
         console.log("diffSwapOutToken", diffSwapOutToken);
+        
         uniswapRouter = ISwapRouter(SwapRouter);
         ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
             tokenIn: swapOutToken,
@@ -84,6 +93,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0
         });
+        
         IERC20(swapOutToken).approve(address(uniswapRouter), diffSwapOutToken);
         uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
         console.log("swap final amount: ", finalAmounts);
@@ -104,5 +114,5 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     }
 
     event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
-     
+    event SetQuickswapRouter(address newRouter);
 }
