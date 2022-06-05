@@ -46,6 +46,11 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         emit SetQuickswapRouter(_router);
     }
 
+    function setUniswapRouter(address _router) public {
+        uniswapRouter = ISwapRouter(_router);
+        emit SetUniswapRouter(_router);
+    }
+
     function quickswapTrade(address swapIn, address swapOut, uint amount) internal {
         address[] memory path = new address[](2);
         path[0] = swapIn;
@@ -82,7 +87,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         console.log("afterSwapOutToken", afterSwapOutToken);
         console.log("diffSwapOutToken", diffSwapOutToken);
         
-        uniswapRouter = ISwapRouter(SwapRouter);
+        // uniswapRouter = ISwapRouter(SwapRouter);
         ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
             tokenIn: swapOutToken,
             tokenOut: asset,
@@ -115,4 +120,5 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
     event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
     event SetQuickswapRouter(address newRouter);
+    event SetUniswapRouter(address newRouter);
 }
