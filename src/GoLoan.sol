@@ -66,6 +66,23 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         require(amounts[1] > 0, "Quickswap trade failed");
     }
 
+    function uniswapTrade(address swapIn, address swapOut, uint amount) internal {
+        ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
+            tokenIn: swapIn,
+            tokenOut: swapOut,
+            fee: 500,
+            recipient: address(this),
+            deadline: block.timestamp,
+            amountIn: amount,
+            amountOutMinimum: 0,
+            sqrtPriceLimitX96: 0
+        });
+            
+        IERC20(swapIn).approve(address(uniswapRouter), amount);
+        uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
+        require(finalAmounts > 0, "Uniswap trade failed");
+    }
+
     function executeOperation(
         address asset,
         uint256 amount,
@@ -81,28 +98,13 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
         uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
         quickswapTrade(asset, swapOutToken, amount);
-        uint afterSwapOutToken = IERC20(swapOutToken).balanceOf(address(this));
-        uint diffSwapOutToken= afterSwapOutToken.sub(beforeSwapOutTokenBalance);
+        uint afterSwapOutTokenBalance = IERC20(swapOutToken).balanceOf(address(this));
+        uint diffSwapOutTokenAmount = afterSwapOutTokenBalance.sub(beforeSwapOutTokenBalance);
         console.log("beforeSwapOutTokenBalance", beforeSwapOutTokenBalance);
-        console.log("afterSwapOutToken", afterSwapOutToken);
-        console.log("diffSwapOutToken", diffSwapOutToken);
-        
-        // uniswapRouter = ISwapRouter(SwapRouter);
-        ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
-            tokenIn: swapOutToken,
-            tokenOut: asset,
-            fee: 500,
-            recipient: address(this),
-            deadline: block.timestamp,
-            amountIn: diffSwapOutToken,
-            amountOutMinimum: 0,
-            sqrtPriceLimitX96: 0
-        });
-        
-        IERC20(swapOutToken).approve(address(uniswapRouter), diffSwapOutToken);
-        uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
-        console.log("swap final amount: ", finalAmounts);
+        console.log("afterSwapOutTokenBalance", afterSwapOutTokenBalance);
+        console.log("diffSwapOutTokenAmount", diffSwapOutTokenAmount);
 
+        uniswapTrade(swapOutToken, asset, diffSwapOutTokenAmount);
         // approve the repay assets 
         IERC20(asset).approve(address(POOL), approveNum);
         ExecuteOperationEvent(asset, amount, premium, initiator, params);
