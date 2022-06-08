@@ -90,11 +90,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         address initiator,
         bytes calldata params
     ) external override returns (bool) {
-        console.log("GoLoanContract Balance: ", getBalanceInternal(asset));
         require(amount <= getBalanceInternal(asset), "Invalid balance");
-
-        uint approveNum =  premium.add(amount);
-        console.log("GoLoanContract approveNum: ", approveNum);
 
         uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
         quickswapTrade(asset, swapOutToken, amount);
@@ -103,15 +99,16 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         console.log("beforeSwapOutTokenBalance", beforeSwapOutTokenBalance);
         console.log("afterSwapOutTokenBalance", afterSwapOutTokenBalance);
         console.log("diffSwapOutTokenAmount", diffSwapOutTokenAmount);
-
         uniswapTrade(swapOutToken, asset, diffSwapOutTokenAmount);
-        // approve the repay assets 
-        IERC20(asset).approve(address(POOL), approveNum);
+
+        // approve the repay assets
+        uint repayAmount =  premium.add(amount);
+        IERC20(asset).approve(address(POOL), repayAmount);
         ExecuteOperationEvent(asset, amount, premium, initiator, params);
         return true;
   }
 
-    function execute(address _swapInToken, uint _swapInAmount, address _swapOutToken) public onlyOwner {
+    function execute(address _swapInToken, address _swapOutToken, uint _swapInAmount) public onlyOwner {
         swapInToken = _swapInToken;
         // swapInAmount = _swapInAmount;
         swapOutToken = _swapOutToken;

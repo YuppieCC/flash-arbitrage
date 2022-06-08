@@ -21,6 +21,9 @@ contract GoFlashTest is DSTest {
     address public USDC = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
     address public amUSDC = 0x625E7708f30cA75bfd92586e17077590C60eb4cD;
     address public WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+    address public WETH = 0x25788a1a171ec66Da6502f9975a15B609fF54CF6;
+    address public DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
+    address public LINK = 0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39;
 
     function setUp() public {
         goLoan = new GoLoan(IPoolAddressesProvider(PoolAddressesProvider));
@@ -40,8 +43,9 @@ contract GoFlashTest is DSTest {
         console.log("GoLoan last Balance", lastBalance);
         goLoan.setQuickswapRouter(UniswapV2Router02);
         goLoan.setUniswapRouter(SwapRouter);
-        goLoan.execute(USDC, 1e6, WMATIC);
+        goLoan.execute(USDC, LINK, 1e6);
         uint NowBalance = IERC20(USDC).balanceOf(address(goLoan));
+        
         console.log("GoLoan Now Balance", NowBalance);
     }
     
