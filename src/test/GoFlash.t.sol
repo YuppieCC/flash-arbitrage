@@ -27,15 +27,27 @@ contract GoFlashTest is DSTest {
 
     function setUp() public {
         goLoan = new GoLoan(IPoolAddressesProvider(PoolAddressesProvider));
-        console.log("GoLoan Address Provider:", address(goLoan.ADDRESSES_PROVIDER()));
-        console.log("GoLoan Pool:", address(goLoan.POOL()));
 
         cheats.prank(address(sam));
+        IERC20(USDC).approve(address(this), testAmount);
+        cheats.prank(address(sam));
+        IERC20(USDC).transfer(address(this), testAmount);
+
         IERC20(USDC).approve(address(goLoan), testAmount);
-        cheats.prank(address(sam));
-        IERC20(USDC).transfer(address(goLoan), testAmount);
-
+        goLoan.deploy(USDC, 1e6);
         console.log("goLoan USDC:", IERC20(USDC).balanceOf(address(goLoan)));
+    }
+
+    function testDeployWithdraw() public {
+        cheats.prank(address(sam));
+        IERC20(USDC).approve(address(this), testAmount);
+        cheats.prank(address(sam));
+        IERC20(USDC).transfer(address(this), testAmount);
+
+        IERC20(USDC).approve(address(goLoan), testAmount);
+        goLoan.deploy(USDC, 1e6);
+
+        goLoan.withdraw(USDC, 1e6);
     }
 
     function testFlashLoan() public {
@@ -43,7 +55,7 @@ contract GoFlashTest is DSTest {
         console.log("GoLoan last Balance", lastBalance);
         goLoan.setQuickswapRouter(UniswapV2Router02);
         goLoan.setUniswapRouter(SwapRouter);
-        goLoan.execute(USDC, LINK, 1e6);
+        goLoan.execute(USDC, WMATIC, 1e6);
         uint NowBalance = IERC20(USDC).balanceOf(address(goLoan));
         
         console.log("GoLoan Now Balance", NowBalance);

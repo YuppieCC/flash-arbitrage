@@ -83,6 +83,23 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         require(finalAmounts > 0, "Uniswap trade failed");
     }
 
+    function deploy(address token, uint256 amount) public onlyOwner {
+        require(token != address(0), "token cannot be 0");
+        require(amount > 0, "Cannot stake 0");
+        require(IERC20(token).balanceOf(msg.sender) >= amount, "Not enough tokens");
+        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        emit Deploy(msg.sender, token, amount);
+    }
+
+    function withdraw(address token, uint256 amount) public onlyOwner {
+        require(token != address(0), "token cannot be 0");
+        require(IERC20(token).balanceOf(address(this)) >= amount, "Not enough tokens");
+        require(amount > 0, "Cannot withdraw 0");
+        IERC20(token).transfer(msg.sender, amount);
+       
+        emit Withdrawn(msg.sender, token, amount);
+    }
+
     function executeOperation(
         address asset,
         uint256 amount,
@@ -91,7 +108,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         bytes calldata params
     ) external override returns (bool) {
         require(amount <= getBalanceInternal(asset), "Invalid balance");
-
+    
         uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
         quickswapTrade(asset, swapOutToken, amount);
         uint afterSwapOutTokenBalance = IERC20(swapOutToken).balanceOf(address(this));
@@ -108,9 +125,8 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         return true;
   }
 
-    function execute(address _swapInToken, address _swapOutToken, uint _swapInAmount) public onlyOwner {
+    function execute(address _swapInToken, address _swapOutToken, uint _swapInAmount) external onlyOwner {
         swapInToken = _swapInToken;
-        // swapInAmount = _swapInAmount;
         swapOutToken = _swapOutToken;
 
         bytes memory data = "";
@@ -120,4 +136,6 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
     event SetQuickswapRouter(address newRouter);
     event SetUniswapRouter(address newRouter);
+    event Deploy(address owner, address token, uint256 amount);
+    event Withdrawn(address to, address token, uint256 amount);
 }
