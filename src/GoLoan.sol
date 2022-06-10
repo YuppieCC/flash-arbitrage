@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "ds-test/console.sol";
+// import "ds-test/console.sol";
 import {SafeMath} from "./library/SafeMath.sol";
 import {Ownable} from "./library/Ownable.sol";
 import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.sol';
@@ -31,6 +31,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
     address public swapInToken;
     address public swapOutToken;
+    bool public direction = false;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
@@ -51,11 +52,13 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         emit SetUniswapRouter(_router);
     }
 
-    function quickswapTrade(address swapIn, address swapOut, uint amount) internal {
+    function quickswapTrade(address swapIn, address swapOut, uint amount) internal returns (uint){
         address[] memory path = new address[](2);
         path[0] = swapIn;
         path[1] = swapOut;
+
         IERC20(swapIn).approve(address(quickswapRouter), amount);
+        uint beforeSwapBalance = IERC20(swapOut).balanceOf(address(this));
         uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
             amount,
             0,
@@ -63,10 +66,13 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
             address(this),
             block.timestamp
         );
-        require(amounts[1] > 0, "Quickswap trade failed");
+        uint afterSwapBalance = IERC20(swapOut).balanceOf(address(this));
+        uint swapAmount = afterSwapBalance.sub(beforeSwapBalance);
+        require(swapAmount > 0, "Quickswap trade failed");
+        return swapAmount;
     }
 
-    function uniswapTrade(address swapIn, address swapOut, uint amount) internal {
+    function uniswapTrade(address swapIn, address swapOut, uint amount) internal returns (uint){
         ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter.ExactInputSingleParams({
             tokenIn: swapIn,
             tokenOut: swapOut,
@@ -79,8 +85,12 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         });
             
         IERC20(swapIn).approve(address(uniswapRouter), amount);
+        uint beforeSwapBalance = IERC20(swapOut).balanceOf(address(this));
         uint finalAmounts = uniswapRouter.exactInputSingle(swapParams);
-        require(finalAmounts > 0, "Uniswap trade failed");
+        uint afterSwapBalance = IERC20(swapOut).balanceOf(address(this));
+        uint swapAmount = afterSwapBalance.sub(beforeSwapBalance);
+        require(swapAmount > 0, "Uniswap trade failed");
+        return swapAmount;
     }
 
     function deploy(address token, uint256 amount) public onlyOwner {
@@ -109,14 +119,17 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     ) external override returns (bool) {
         require(amount <= getBalanceInternal(asset), "Invalid balance");
     
-        uint beforeSwapOutTokenBalance =  IERC20(swapOutToken).balanceOf(address(this));
-        quickswapTrade(asset, swapOutToken, amount);
-        uint afterSwapOutTokenBalance = IERC20(swapOutToken).balanceOf(address(this));
-        uint diffSwapOutTokenAmount = afterSwapOutTokenBalance.sub(beforeSwapOutTokenBalance);
-        console.log("beforeSwapOutTokenBalance", beforeSwapOutTokenBalance);
-        console.log("afterSwapOutTokenBalance", afterSwapOutTokenBalance);
-        console.log("diffSwapOutTokenAmount", diffSwapOutTokenAmount);
-        uniswapTrade(swapOutToken, asset, diffSwapOutTokenAmount);
+        if (direction) {
+            uint quickswapTradeAmount = quickswapTrade(asset, swapOutToken, amount);
+            uint uniswapTradeAmount = uniswapTrade(swapOutToken, asset, quickswapTradeAmount);
+            // console.log("quickswapTradeAmount: ", quickswapTradeAmount);
+            // console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
+        } else {
+            uint uniswapTradeAmount = uniswapTrade(asset, swapOutToken, amount);   
+            uint quickswapTradeAmount = quickswapTrade(swapOutToken, asset, uniswapTradeAmount);
+            // console.log("quickswapTradeAmount: ", quickswapTradeAmount);
+            // console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
+        }
 
         // approve the repay assets
         uint repayAmount =  premium.add(amount);
