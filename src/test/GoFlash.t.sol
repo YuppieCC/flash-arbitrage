@@ -38,23 +38,24 @@ contract GoFlashTest is DSTest {
         console.log("goLoan USDC:", IERC20(USDC).balanceOf(address(goLoan)));
     }
 
-    function testDeployWithdraw() public {
-        cheats.prank(address(sam));
-        IERC20(USDC).approve(address(this), 1e6);
-        cheats.prank(address(sam));
-        IERC20(USDC).transfer(address(this), 1e6);
+    // function testDeployWithdraw() public {
+    //     cheats.prank(address(sam));
+    //     IERC20(USDC).approve(address(this), 1e6);
+    //     cheats.prank(address(sam));
+    //     IERC20(USDC).transfer(address(this), 1e6);
 
-        IERC20(USDC).approve(address(goLoan), 1e6);
-        goLoan.deploy(USDC, 1e6);
+    //     IERC20(USDC).approve(address(goLoan), 1e6);
+    //     goLoan.deploy(USDC, 1e6);
 
-        goLoan.withdraw(USDC, 1e6);
-    }
+    //     goLoan.withdraw(USDC, 1e6);
+    // }
 
     function testFlashLoan() public {
         uint lastBalance = IERC20(USDC).balanceOf(address(goLoan));
         console.log("GoLoan last Balance", lastBalance);
         goLoan.setQuickswapRouter(UniswapV2Router02);
         goLoan.setUniswapRouter(SwapRouter);
+        goLoan.setReferralCode(0);
         goLoan.execute(USDC, WMATIC, 200e6);
         uint NowBalance = IERC20(USDC).balanceOf(address(goLoan));
         

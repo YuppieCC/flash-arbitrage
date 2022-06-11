@@ -19,8 +19,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     
     IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
     IPool public immutable override POOL;
-    uint16 public defaultReferralCode = 0;
-    uint256 public defaultPremium = 0.09 * 1e18;
+    uint16 public referralCode = 0;
 
     // Quickswap
     address public QuickswapRouter = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
@@ -41,14 +40,19 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         return IERC20(_reserve).balanceOf(address(this));
     }
 
-    function setQuickswapRouter(address _router) public {
+    function setQuickswapRouter(address _router) external onlyOwner {
         quickswapRouter = IUniswapV2Router01(_router);
         emit SetQuickswapRouter(_router);
     }
 
-    function setUniswapRouter(address _router) public {
+    function setUniswapRouter(address _router) external onlyOwner {
         uniswapRouter = ISwapRouter(_router);
         emit SetUniswapRouter(_router);
+    }
+
+    function setReferralCode(uint8 _referralCode) external onlyOwner {
+        referralCode = _referralCode;
+        emit SetReferralCode(_referralCode);
     }
 
     function quickswapTrade(address swapIn, address swapOut, uint amount) internal returns (uint){
@@ -141,12 +145,13 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
         swapOutToken = _swapOutToken;
 
         bytes memory data = "";
-        POOL.flashLoanSimple(address(this), _swapInToken, _swapInAmount, data, defaultReferralCode);
+        POOL.flashLoanSimple(address(this), _swapInToken, _swapInAmount, data, referralCode);
     }
 
     event ExecuteOperationEvent(address asset, uint256 amount, uint256 premium, address initiator, bytes params);
     event SetQuickswapRouter(address newRouter);
     event SetUniswapRouter(address newRouter);
+    event SetReferralCode(uint8 newReferralCode);
     event Deploy(address owner, address token, uint256 amount);
     event Withdrawn(address to, address token, uint256 amount);
 }
