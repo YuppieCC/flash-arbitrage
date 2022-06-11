@@ -40,11 +40,11 @@ contract GoFlashTest is DSTest {
 
     function testDeployWithdraw() public {
         cheats.prank(address(sam));
-        IERC20(USDC).approve(address(this), testAmount);
+        IERC20(USDC).approve(address(this), 1e6);
         cheats.prank(address(sam));
-        IERC20(USDC).transfer(address(this), testAmount);
+        IERC20(USDC).transfer(address(this), 1e6);
 
-        IERC20(USDC).approve(address(goLoan), testAmount);
+        IERC20(USDC).approve(address(goLoan), 1e6);
         goLoan.deploy(USDC, 1e6);
 
         goLoan.withdraw(USDC, 1e6);

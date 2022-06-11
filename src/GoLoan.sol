@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import "ds-test/console.sol";
+import "ds-test/console.sol";
 import {SafeMath} from "./library/SafeMath.sol";
 import {Ownable} from "./library/Ownable.sol";
 import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.sol';
@@ -23,7 +23,6 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     uint256 public defaultPremium = 0.09 * 1e18;
 
     // Quickswap
-    // address public UniswapV2Router02 = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
     address public QuickswapRouter = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
 
     // Uniswap
@@ -31,7 +30,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
 
     address public swapInToken;
     address public swapOutToken;
-    bool public direction = false;
+    bool public isPositiveSide = true;
 
     constructor(IPoolAddressesProvider provider) {
         ADDRESSES_PROVIDER = provider;
@@ -94,7 +93,7 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     }
 
     function deploy(address token, uint256 amount) public onlyOwner {
-        require(token != address(0), "token cannot be 0");
+        require(token != address(0), "address cannot be 0");
         require(amount > 0, "Cannot stake 0");
         require(IERC20(token).balanceOf(msg.sender) >= amount, "Not enough tokens");
         IERC20(token).transferFrom(msg.sender, address(this), amount);
@@ -102,11 +101,10 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     }
 
     function withdraw(address token, uint256 amount) public onlyOwner {
-        require(token != address(0), "token cannot be 0");
-        require(IERC20(token).balanceOf(address(this)) >= amount, "Not enough tokens");
+        require(token != address(0), "address cannot be 0");
         require(amount > 0, "Cannot withdraw 0");
+        require(IERC20(token).balanceOf(address(this)) >= amount, "Not enough tokens");
         IERC20(token).transfer(msg.sender, amount);
-       
         emit Withdrawn(msg.sender, token, amount);
     }
 
@@ -119,16 +117,16 @@ contract GoLoan is IFlashLoanSimpleReceiver, Ownable{
     ) external override returns (bool) {
         require(amount <= getBalanceInternal(asset), "Invalid balance");
     
-        if (direction) {
+        if (isPositiveSide) {
             uint quickswapTradeAmount = quickswapTrade(asset, swapOutToken, amount);
             uint uniswapTradeAmount = uniswapTrade(swapOutToken, asset, quickswapTradeAmount);
-            // console.log("quickswapTradeAmount: ", quickswapTradeAmount);
-            // console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
+            console.log("quickswapTradeAmount: ", quickswapTradeAmount);
+            console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
         } else {
             uint uniswapTradeAmount = uniswapTrade(asset, swapOutToken, amount);   
             uint quickswapTradeAmount = quickswapTrade(swapOutToken, asset, uniswapTradeAmount);
-            // console.log("quickswapTradeAmount: ", quickswapTradeAmount);
-            // console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
+            console.log("uniswapTradeAmount: ", uniswapTradeAmount);        
+            console.log("quickswapTradeAmount: ", quickswapTradeAmount);
         }
 
         // approve the repay assets
