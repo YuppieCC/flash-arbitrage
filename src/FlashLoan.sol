@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "ds-test/console.sol";
 import {SafeMath} from "./library/SafeMath.sol";
 import {Ownable} from "./library/Ownable.sol";
 import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.sol';
@@ -14,15 +13,15 @@ import {ISwapWrapper} from './interfaces/ISwapWrapper.sol';
 contract FlashLoan is IFlashLoanSimpleReceiver, Ownable{
     using SafeMath for uint;
     
-    IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
+    // IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
     IPool public immutable override POOL;
     uint16 public referralCode = 0;
 
     mapping(string => address) public wrapperMap;
 
-    constructor(IPoolAddressesProvider provider) {
-        ADDRESSES_PROVIDER = provider;
-        POOL = IPool(provider.getPool());
+    constructor(address provider) {
+        // ADDRESSES_PROVIDER = provider;
+        POOL = IPool(IPoolAddressesProvider(provider).getPool());
     }
 
     function getBalanceInternal(address _reserve) internal view returns(uint256) {
@@ -67,6 +66,7 @@ contract FlashLoan is IFlashLoanSimpleReceiver, Ownable{
             address swapOutProtocol,
             address _swapOutToken
         ) = abi.decode(params, (address, address, address));
+        
         IERC20(asset).transfer(swapInProtocol, amount);
         uint diffOutAmount = ISwapWrapper(swapInProtocol).swap(asset, _swapOutToken, amount);
         IERC20(_swapOutToken).transfer(swapOutProtocol, diffOutAmount);

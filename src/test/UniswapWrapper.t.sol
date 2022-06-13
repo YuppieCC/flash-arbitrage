@@ -24,6 +24,7 @@ contract UniswapWrapperTest is DSTest {
     function setUp() public {
         swapWrapper = new UniswapWrapper();
         swapWrapper.setRouter(router);
+        swapWrapper.setSwapCaller(address(this));
 
         cheats.prank(address(sam));
         IERC20(USDC).approve(address(swapWrapper), 1e6);

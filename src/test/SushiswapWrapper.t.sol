@@ -6,10 +6,10 @@ import "ds-test/test.sol";
 import "ds-test/cheatcodes.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 import {ISwapWrapper} from "../interfaces/ISwapWrapper.sol";
-import {QuickswapWrapper} from "../QuickswapWrapper.sol";
+import {SushiswapWrapper} from "../SushiswapWrapper.sol";
 
-contract QuickswapWrapperTest is DSTest {
-    QuickswapWrapper swapWrapper;
+contract SushiswapWrapperTest is DSTest {
+    SushiswapWrapper swapWrapper;
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
     address public SY = 0xAF838230fc2E832798ae88fa107C465F7F6Cfd13;
@@ -18,11 +18,11 @@ contract QuickswapWrapperTest is DSTest {
     address public WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
     address public WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
 
-    // Quickswap
-    address public router = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
+    // Sushiswap
+    address public router = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
 
     function setUp() public {
-        swapWrapper = new QuickswapWrapper();
+        swapWrapper = new SushiswapWrapper();
         swapWrapper.setRouter(router);
         swapWrapper.setSwapCaller(address(this));
 

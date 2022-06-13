@@ -8,11 +8,13 @@ import {FlashLoan} from "../FlashLoan.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 import {IPoolAddressesProvider} from '../interfaces/IPoolAddressesProvider.sol';
 import {UniswapWrapper} from '../UniswapWrapper.sol';
-import {QuickwapWrapper} from '../QuickswapWrapper.sol';
+import {QuickswapWrapper} from '../QuickswapWrapper.sol';
+import {SushiswapWrapper} from '../SushiswapWrapper.sol';
 
 contract FlashLoanTest is DSTest {
     UniswapWrapper uniswapWrapper;
-    QuickwapWrapper quickswapWrapper;
+    QuickswapWrapper quickswapWrapper;
+    SushiswapWrapper sushiswapWrapper;
     FlashLoan flashLoan;
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     
@@ -35,18 +37,29 @@ contract FlashLoanTest is DSTest {
     // Uniswap
     address public UniwapRouter = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
+    // Sushiswap
+    address public SushiswapRouter = 0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
+
     function setUp() public {
         uniswapWrapper = new UniswapWrapper();
-        quickswapWrapper = new QuickwapWrapper();
+        sushiswapWrapper = new SushiswapWrapper();
+        quickswapWrapper = new QuickswapWrapper();
         uniswapWrapper.setRouter(UniwapRouter);
         quickswapWrapper.setRouter(QuickswapRouter);
+        sushiswapWrapper.setRouter(SushiswapRouter);
 
-        flashLoan = new FlashLoan(IPoolAddressesProvider(PoolAddressesProvider));
+        console.log("uniswapWrapper address", address(uniswapWrapper));
+        console.log("quickswapWrapper address", address(quickswapWrapper));
+        console.log("sushiswapWrapper address", address(sushiswapWrapper));
+
+        flashLoan = new FlashLoan(PoolAddressesProvider);
         flashLoan.setWrapperMap("uniswap", address(uniswapWrapper));
         flashLoan.setWrapperMap("quickswap", address(quickswapWrapper));
+        flashLoan.setWrapperMap("sushiswap", address(sushiswapWrapper));
 
         uniswapWrapper.setSwapCaller(address(flashLoan));
         quickswapWrapper.setSwapCaller(address(flashLoan));
+        sushiswapWrapper.setSwapCaller(address(flashLoan));
 
         cheats.prank(address(sam));
         IERC20(USDC).approve(address(this), testAmount);
@@ -74,10 +87,8 @@ contract FlashLoanTest is DSTest {
         uint lastBalance = IERC20(USDC).balanceOf(address(flashLoan));
         console.log("FlashLoan last Balance", lastBalance);
         flashLoan.execute(
-            // address(quickswapWrapper), 
-            // address(uniswapWrapper), 
             'uniswap',
-            'quickswap',
+            'sushiswap',
             USDC, 
             WMATIC, 
             20e6

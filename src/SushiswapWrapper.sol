@@ -6,13 +6,13 @@ import {IERC20} from "./interfaces/IERC20.sol";
 import {IUniswapV2Router01} from "./interfaces/IUniswapV2Router01.sol";
 import {BaseWrapper} from './BaseWrapper.sol';
 
-contract QuickswapWrapper is BaseWrapper {
+contract SushiswapWrapper is BaseWrapper {
     using SafeMath for uint;
-    IUniswapV2Router01 quickswapRouter;
+    IUniswapV2Router01 sushiswapRouter;
 
     function setRouter(address _router) external override onlyOwner {
         router = _router;
-        quickswapRouter = IUniswapV2Router01(_router);
+        sushiswapRouter = IUniswapV2Router01(_router);
     }
 
     function swap(address swapIn, address swapOut, uint amount) external override onlyLoanOwner returns (uint) {
@@ -20,9 +20,9 @@ contract QuickswapWrapper is BaseWrapper {
         path[0] = swapIn;
         path[1] = swapOut;
 
-        IERC20(swapIn).approve(address(quickswapRouter), amount);
+        IERC20(swapIn).approve(address(sushiswapRouter), amount);
         uint beforeSwapBalance = IERC20(swapOut).balanceOf(address(this));
-        uint[] memory amounts = quickswapRouter.swapExactTokensForTokens(
+        uint[] memory amounts = sushiswapRouter.swapExactTokensForTokens(
             amount,
             0,
             path,
@@ -34,7 +34,7 @@ contract QuickswapWrapper is BaseWrapper {
         
         IERC20(swapIn).transfer(msg.sender, IERC20(swapIn).balanceOf(address(this)));
         IERC20(swapOut).transfer(msg.sender, swapAmount);
-        require(swapAmount > 0, "Quickswap trade failed");
+        require(swapAmount > 0, "Sushiswap trade failed");
         emit Swap(swapIn, swapOut, swapAmount);
         return swapAmount;
     }
