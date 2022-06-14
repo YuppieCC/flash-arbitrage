@@ -10,7 +10,7 @@ import {IERC20} from "./interfaces/IERC20.sol";
 import {ISwapWrapper} from './interfaces/ISwapWrapper.sol';
 
 
-contract FlashLoan is IFlashLoanSimpleReceiver, Ownable{
+contract FlashArbitrage is IFlashLoanSimpleReceiver, Ownable{
     using SafeMath for uint;
     
     // IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;

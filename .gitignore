@@ -1,2 +1,7 @@
 cache/
 out/
+
+test.ts
+.vscode
+.env
+.gas-snapshot

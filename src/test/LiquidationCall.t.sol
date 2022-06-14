@@ -64,6 +64,8 @@ contract LiquidationCallTest is DSTest {
 
         uint afterBalance = IERC20(USDC).balanceOf(address(sam));
         console.log("afterBalance", afterBalance);
+        
+        assertGt(beforeBalance, afterBalance);
     }
 
     function testBorrow() public {
@@ -81,6 +83,8 @@ contract LiquidationCallTest is DSTest {
 
         uint afterBalance = IERC20(USDC).balanceOf(address(sam));
         console.log("afterBalance", afterBalance);
+
+        assertGt(afterBalance, beforeBalance);
     }
 
     function testWithdraw() public {
@@ -96,6 +100,8 @@ contract LiquidationCallTest is DSTest {
 
         uint afterBalance = IERC20(USDC).balanceOf(address(sam));
         console.log("afterBalance", afterBalance);
+
+        assertGt(afterBalance, beforeBalance);
     }
 
     function testRepay() public {
@@ -115,26 +121,37 @@ contract LiquidationCallTest is DSTest {
         uint afterRepayBalance = IERC20(asset).balanceOf(address(sam));
         console.log("afterRepayBalance", afterRepayBalance);
 
+        assertGt(res, 0);
+
     }
 
     // function testLiquidationCall() public {
+    //     (
+    //         uint256 totalCollateralBase,
+    //         uint256 totalDebtBase,
+    //         uint256 availableBorrowsBase,
+    //         uint256 currentLiquidationThreshold,
+    //         uint256 ltv,
+    //         uint256 healthFactor
+    //     ) = pool.getUserAccountData(sam);
+        
+    //     console.log("totalCollateralBase", totalCollateralBase);
+    //     console.log("totalDebtBase", totalDebtBase);
+    //     console.log("availableBorrowsBase", availableBorrowsBase);
+    //     console.log("currentLiquidationThreshold", currentLiquidationThreshold);
+    //     console.log("ltv", ltv);
+    //     console.log("healthFactor", healthFactor);
+
     //     address collateralAsset = USDC;
     //     address debtAsset = DAI;
     //     address user = sam;
     //     uint256 debtToCover = 5e17;
     //     bool receiveAToken = false;
-
-    //     address asset = DAI;
-    //     uint256 amount = 10e18;
-    //     uint256 interestRateMode = 2;
-    //     address onBehalfOf = sam;
-    //     uint16 referralCode = 0;
         
-        // cheats.prank(sam);
-        // pool.borrow(asset, amount, interestRateMode, referralCode, onBehalfOf);
-        // console.log("afterBalance", IERC20(DAI).balanceOf(sam));
-
     //     console.log("beforeBalance", IERC20(DAI).balanceOf(eacentcheung));
+    //     cheats.prank(eacentcheung);
+    //     IERC20(debtAsset).approve(address(pool), type(uint).max);
+
     //     cheats.prank(eacentcheung);
     //     pool.liquidationCall(collateralAsset, debtAsset, user, debtToCover, receiveAToken);
     //     console.log("afterBalance", IERC20(DAI).balanceOf(eacentcheung));

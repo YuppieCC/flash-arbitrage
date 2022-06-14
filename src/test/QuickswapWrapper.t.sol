@@ -12,8 +12,7 @@ contract QuickswapWrapperTest is DSTest {
     QuickswapWrapper swapWrapper;
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
-    address public SY = 0xAF838230fc2E832798ae88fa107C465F7F6Cfd13;
-    address public sam = 0x6F82E3cc2a3d6b7A6d98e7941BCadd7f52919D53;
+    address public sam = 0xAF838230fc2E832798ae88fa107C465F7F6Cfd13;
     address public USDC = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
     address public WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
     address public WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
@@ -37,8 +36,9 @@ contract QuickswapWrapperTest is DSTest {
     }
 
     function testSwap() public {
-        console.log("Last balance", IERC20(WMATIC).balanceOf(address(swapWrapper)));
+        uint beforeSwapBalance = IERC20(USDC).balanceOf(address(swapWrapper));
         swapWrapper.swap(USDC, WMATIC, 1e6);
-        console.log("Now balance", IERC20(WMATIC).balanceOf(address(swapWrapper)));
+        uint afterSwapBalance = IERC20(USDC).balanceOf(address(swapWrapper));
+        assertGt(beforeSwapBalance, afterSwapBalance);
     }
 }
