@@ -28,20 +28,20 @@ contract DeployScript is Script {
 
     function run() external {
         vm.startBroadcast();
-        // uniswapWrapper = new UniswapWrapper();
-        // sushiswapWrapper = new SushiswapWrapper();
-        // quickswapWrapper = new QuickswapWrapper();
-        // uniswapWrapper.setRouter(UniwapRouter);
-        // quickswapWrapper.setRouter(QuickswapRouter);
-        // sushiswapWrapper.setRouter(SushiswapRouter);
+        uniswapWrapper = new UniswapWrapper();
+        sushiswapWrapper = new SushiswapWrapper();
+        quickswapWrapper = new QuickswapWrapper();
+        uniswapWrapper.setRouter(UniwapRouter);
+        quickswapWrapper.setRouter(QuickswapRouter);
+        sushiswapWrapper.setRouter(SushiswapRouter);
 
         flashArbitrage = new FlashArbitrage(PoolAddressesProvider);
-        // flashArbitrage.setWrapperMap("uniswap", address(uniswapWrapper));
-        // flashArbitrage.setWrapperMap("quickswap", address(quickswapWrapper));
-        // flashArbitrage.setWrapperMap("sushiswap", address(sushiswapWrapper));
+        flashArbitrage.setWrapperMap("uniswap", address(uniswapWrapper));
+        flashArbitrage.setWrapperMap("quickswap", address(quickswapWrapper));
+        flashArbitrage.setWrapperMap("sushiswap", address(sushiswapWrapper));
 
-        // uniswapWrapper.setSwapCaller(address(flashArbitrage));
-        // quickswapWrapper.setSwapCaller(address(flashArbitrage));
-        // sushiswapWrapper.setSwapCaller(address(flashArbitrage));
+        uniswapWrapper.setSwapCaller(address(flashArbitrage));
+        quickswapWrapper.setSwapCaller(address(flashArbitrage));
+        sushiswapWrapper.setSwapCaller(address(flashArbitrage));
     }
 }
