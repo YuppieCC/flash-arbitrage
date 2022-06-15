@@ -2,6 +2,7 @@ cache/
 out/
 assets/
 
+deploy
 test.ts
 .vscode
 .env
