@@ -1,5 +1,6 @@
 cache/
 out/
+assets/
 
 test.ts
 .vscode
