@@ -22,7 +22,7 @@ deploy-contract:
 		src/$(DEPLOY_CONTRACT).sol:$(DEPLOY_CONTRACT) \
 		--gas-price ${GAS_PRICE}
 
-# verify contracts
+# verify the contract
 verify-contract:
 	forge verify-contract --chain-id ${CHAIN_ID} \
 		--num-of-optimizations 200 \

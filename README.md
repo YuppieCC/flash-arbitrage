@@ -7,7 +7,7 @@ To reduce the cost and risk of arbitrage, I use FlashLoan for cross-protocol arb
 
 [![XozXKP.png](https://s1.ax1x.com/2022/06/15/XozXKP.png)](https://imgtu.com/i/XozXKP)
 
-## Execute
+## Usage
 When all contracts have been deployed, you can stake some assets to the contract, and call the `execute()` method to initiate transactions.
 
 ```solidity
@@ -30,7 +30,7 @@ SushiswapWrapper |[GitHub](https://github.com/YuppieCC/flash-arbitrage/blob/main
 UniswapWrapper |[GitHub](https://github.com/YuppieCC/flash-arbitrage/blob/main/src/UniswapWrapper.sol)|[0xeee45d451eDaC60dAA703514deF979F3a1D3120B](https://polygonscan.com/address/0xeee45d451eDaC60dAA703514deF979F3a1D3120B) | Polygon
 QuickswapWrapper |[GitHub](https://github.com/YuppieCC/flash-arbitrage/blob/main/src/QuickswapWrapper.sol)|[0xF22FEbD79Cd2b986d00549eBE91A836b686d2f65](https://polygonscan.com/address/0xF22FEbD79Cd2b986d00549eBE91A836b686d2f65) | Polygon
 
-## Usage
+## Development
 
 ```Shell
 

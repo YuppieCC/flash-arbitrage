@@ -6,4 +6,3 @@ deploy
 test.ts
 .vscode
 .env
-.gas-snapshot

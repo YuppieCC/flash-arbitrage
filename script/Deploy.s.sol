@@ -43,5 +43,6 @@ contract DeployScript is Script {
         uniswapWrapper.setSwapCaller(address(flashArbitrage));
         quickswapWrapper.setSwapCaller(address(flashArbitrage));
         sushiswapWrapper.setSwapCaller(address(flashArbitrage));
+        vm.stopBroadcast();
     }
 }
