@@ -15,6 +15,9 @@ report:
 build:
 	forge build
 
+snapshot:
+	forge snapshot --fork-url ${NETWORK_RPC_URL}
+
 # deploy the contract
 deploy-contract:
 	forge create --rpc-url ${NETWORK_RPC_URL} --constructor-args $(CONSTRUCTOR_ARGS) \
