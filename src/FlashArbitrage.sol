@@ -7,11 +7,13 @@ import {IFlashLoanSimpleReceiver} from './interfaces/IFlashLoanSimpleReceiver.so
 import {IPoolAddressesProvider} from './interfaces/IPoolAddressesProvider.sol';
 import {IPool} from './interfaces/IPool.sol';
 import {IERC20} from "./interfaces/IERC20.sol";
+import {SafeERC20} from './library/SafeERC20.sol';
 import {ISwapWrapper} from './interfaces/ISwapWrapper.sol';
 
 
 contract FlashArbitrage is IFlashLoanSimpleReceiver, Ownable{
     using SafeMath for uint;
+    using SafeERC20 for IERC20;
     
     // IPoolAddressesProvider public immutable override ADDRESSES_PROVIDER;
     IPool public immutable override POOL;
@@ -41,7 +43,7 @@ contract FlashArbitrage is IFlashLoanSimpleReceiver, Ownable{
         require(token != address(0), "address cannot be 0");
         require(amount > 0, "Cannot stake 0");
         require(IERC20(token).balanceOf(msg.sender) >= amount, "Not enough tokens");
-        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         emit Deploy(msg.sender, token, amount);
     }
 
@@ -49,7 +51,7 @@ contract FlashArbitrage is IFlashLoanSimpleReceiver, Ownable{
         require(token != address(0), "address cannot be 0");
         require(amount > 0, "Cannot withdraw 0");
         require(IERC20(token).balanceOf(address(this)) >= amount, "Not enough tokens");
-        IERC20(token).transfer(msg.sender, amount);
+        IERC20(token).safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, token, amount);
     }
 
@@ -67,9 +69,9 @@ contract FlashArbitrage is IFlashLoanSimpleReceiver, Ownable{
             address _swapOutToken
         ) = abi.decode(params, (address, address, address));
         
-        IERC20(asset).transfer(swapInProtocol, amount);
+        IERC20(asset).safeTransfer(swapInProtocol, amount);
         uint diffOutAmount = ISwapWrapper(swapInProtocol).swap(asset, _swapOutToken, amount);
-        IERC20(_swapOutToken).transfer(swapOutProtocol, diffOutAmount);
+        IERC20(_swapOutToken).safeTransfer(swapOutProtocol, diffOutAmount);
         uint resOutAmount = ISwapWrapper(swapOutProtocol).swap(_swapOutToken, asset, diffOutAmount);
         // approve the repay assets
         uint repayAmount =  premium.add(amount);

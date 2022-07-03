@@ -19,7 +19,7 @@ contract FlashArbitrageTest is DSTest {
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     
     uint public testAmount = 30e6;
-    address public sam = 0xAF838230fc2E832798ae88fa107C465F7F6Cfd13;
+    address public sam = 0x6F82E3cc2a3d6b7A6d98e7941BCadd7f52919D53;
     address public PoolAddressesProvider = 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
 
     address public UniswapV2Router02 = 0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff;
@@ -67,7 +67,7 @@ contract FlashArbitrageTest is DSTest {
         IERC20(USDC).transfer(address(this), testAmount);
 
         IERC20(USDC).approve(address(flashArbitrage), testAmount);
-        flashArbitrage.deploy(USDC, 10e6);
+        flashArbitrage.deploy(USDC, 20e6);
         console.log("FlashArbitrage USDC:", IERC20(USDC).balanceOf(address(flashArbitrage)));
     }
 
