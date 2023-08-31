@@ -32,7 +32,7 @@ verify-contract:
 		--constructor-args $(VERITY_CONSTRUCTOR_ARGS) \
 		--compiler-version ${COMPILER_VERSION} $(DEPLOYED_CONTRACT_ADDRESS) \
 		src/$(VERIFY_CONTRACT).sol:$(VERIFY_CONTRACT) \
-		${ETHERSCAN_KEY}m
+		${ETHERSCAN_KEY}
 
 verify-check:
 	forge verify-check --chain-id ${CHAIN_ID} $(GUID) ${ETHERSCAN_KEY}
